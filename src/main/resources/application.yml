@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+qq:
+  # Webhook 回调验证用的 Token
+  token: w7wcrcZ54IvLfIJjjhzPvEFj9yuMat7K
+
+  # 机器人 APP ID
+  app-id: 1903671205
+
+  # ✅ 用于获取 Access Token 的密钥（对应官方文档的 clientSecret）
+  app-secret: r0ALWiv8Mbq6NewFYsDYuHe2QpFf6Y0T
+
+  base-url: https://api.sgroup.qq.com
+deepseek:
+    api-keys: sk-5aed99430cf4410f9b88e95c79ceaa55
+    base-url: https://api.deepseek.com
+wiki:
+  ff14: https://ff14.huijiwiki.com
+  default: https://ff14.huijiwiki.com
+
