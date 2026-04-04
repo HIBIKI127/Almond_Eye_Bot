@@ -136,8 +136,8 @@ public class QQMessageService {
                 "1. 说\"打灰\"获取表情包\n" +
                 "2. 说\"香草马娘\"或\"随机马娘\"获取马娘图片\n" +
                 "3. 使用\"/AI+ 问题\"和我聊天（例如：AI 你好）\n" +
-                "4. 说\"清除历史\"重置对话记录" +
-                "4. 使用\"/FF14Wiki+ 关键词\"查询 Wiki（例如：wiki 光之战士）\n";
+                "4. 说\"清除历史\"重置对话记录 \n" +
+                "5. 使用\"/FF14Wiki+ 关键词\"查询 Wiki（例如：wiki 光之战士）\n";
 
         if ("private".equals(type)) {
             qqApi.sendPrivateMsgWithReply(targetId, helpMsg, msgId);
