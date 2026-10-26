@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 @Service
 public class LocalImageService {
+
     private static final Logger logger = LoggerFactory.getLogger(LocalImageService.class);
 
     private static final String IMAGE_PATH = "assets/chatPic/dahui/";
@@ -70,6 +71,13 @@ public class LocalImageService {
         return imageIndex + ".jpg";
     }
 
+    /**
+     * 获取打灰图片的文件路径（用于OneBot）
+     */
+    public String getRandomDahuiImagePath() {
+        return "file:///" + System.getProperty("user.dir") + "/src/main/resources/" + IMAGE_PATH + "1.jpg";
+    }
+
     public String getSizhaizhenexinImageBase64() {
         try {
             String fileName = "a4c43ef582e7ec320be9e94b88584c26.jpg";
@@ -104,6 +112,13 @@ public class LocalImageService {
         return "a4c43ef582e7ec320be9e94b88584c26.jpg";
     }
 
+    /**
+     * 获取死宅真恶心图片的文件路径（用于OneBot）
+     */
+    public String getSizhaizhenexinImagePath() {
+        return "file:///" + System.getProperty("user.dir") + "/src/main/resources/" + SIZHAIZHENEXIN_IMAGE_PATH + "a4c43ef582e7ec320be9e94b88584c26.jpg";
+    }
+
     public String getRandomUmamusumeImageBase64() {
         try {
             logger.info("开始获取随机马娘图片");
@@ -133,10 +148,39 @@ public class LocalImageService {
         }
     }
 
+    /**
+     * 获取随机马娘图片的文件路径（用于OneBot）
+     */
+    public String getRandomUmamusumeImagePath() {
+        try {
+            logger.info("开始获取随机马娘图片路径");
+
+            String imageUrl = fetchRandomUmamusumeImageUrl();
+
+            if (imageUrl == null || imageUrl.isEmpty()) {
+                logger.error("未能获取到马娘图片 URL");
+                throw new RuntimeException("无法获取马娘图片链接");
+            }
+
+            logger.info("获取到马娘图片 URL: {}", imageUrl);
+
+            byte[] imageBytes = downloadImage(imageUrl);
+
+            String fileName = saveImageToLocal(imageBytes, imageUrl);
+            logger.info("马娘图片已保存到：{}", fileName);
+
+            return "file:///" + System.getProperty("user.dir") + "/" + RANDOM_UMAMUSUME_PATH + fileName;
+
+        } catch (Exception e) {
+            logger.error("获取马娘图片路径失败", e);
+            throw new RuntimeException("获取马娘图片路径失败：" + e.getMessage(), e);
+        }
+    }
+
     private String fetchRandomUmamusumeImageUrl() {
         String[] apiEndpoints = {
-                "https://img.xjh.me/random_img.php?type=acg&return=302",
-                "https://api.lolicon.app/setu/v2?tag=%E9%A9%AC%E5%A8%98&limit=1&r18=false"
+            "https://img.xjh.me/random_img.php?type=acg&return=302",
+            "https://api.lolicon.app/setu/v2?tag=%E9%A9%AC%E5%A8%98&limit=1&r18=false"
         };
 
         for (String apiUrl : apiEndpoints) {

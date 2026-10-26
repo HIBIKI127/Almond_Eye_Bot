@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Almond Eye · 机器人配置</title>
+  <link rel="stylesheet" href="admin.css?v=content-boundary-1">
+  <script src="admin.js?v=content-boundary-1" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/admin/"><span class="brand-mark">a<span>•</span></span><span>Almond Eye<small>BOT STUDIO</small></span></a>
+    <p class="nav-caption">工作空间</p>
+    <nav aria-label="主导航">
+      <button class="nav-item active" data-view="rules" aria-current="page"><span class="nav-icon">↗</span>关键词回复<span id="nav-rule-count" class="nav-count">0</span></button>
+      <button class="nav-item" data-view="images"><span class="nav-icon">▧</span>图片资源</button>
+      <button class="nav-item" data-view="groups"><span class="nav-icon">◎</span>群聊管理</button>
+      <button class="nav-item" data-view="knowledge"><span class="nav-icon">▤</span>资料库</button>
+      <button class="nav-item" data-view="persona"><span class="nav-icon">✦</span>人设配置</button>
+      <button class="nav-item" data-view="learning"><span class="nav-icon">◈</span>人格学习</button>
+      <button class="nav-item" data-view="settings"><span class="nav-icon">☷</span>功能设置</button>
+    </nav>
+    <div class="sidebar-note"><span class="tiny-dot"></span><strong>你的机器人，你来定义。</strong><p>从一句问候到一张表情包，<br>让每次回复都有自己的风格。</p></div>
+    <button class="connection-button" id="connection-button"><span>⚙</span> 连接设置 <span class="arrow">↗</span></button>
+    <div class="sidebar-footer">ALMOND EYE BOT <span>本地工作空间</span></div>
+  </aside>
+
+  <main>
+    <header class="topbar"><span>工作空间 <span class="breadcrumb">/</span> <span id="breadcrumb-title">关键词回复</span></span><div class="top-actions"><span id="connection-status" class="status"><i></i>正在连接</span><button class="button quiet" id="refresh-button" aria-label="刷新配置">↻ 刷新</button></div></header>
+    <div class="workspace">
+      <section class="page-heading"><div><p class="eyebrow">MAKE IT YOURS</p><h1 id="page-title">给每句话，一个回应。</h1><p id="page-description">设置关键词，让机器人在合适的时刻说合适的话。</p></div><button class="button secondary" id="export-button">↓ 导出 SQL</button></section>
+
+      <div id="load-error" class="error-banner" role="alert" hidden></div>
+      <section class="stats" aria-label="配置统计">
+        <div class="stat"><span>回复规则</span><strong id="total-rules">—</strong><small>已创建的关键词回复</small></div>
+        <div class="stat"><span>正在生效</span><strong id="enabled-rules">—</strong><small><i class="tiny-dot"></i> 保存后即时生效</small></div>
+        <div class="stat"><span>图片资源</span><strong id="total-images">—</strong><small>存放在本地资源库</small></div>
+      </section>
+
+      <section id="view-rules" class="view">
+        <div class="rules-layout">
+          <section class="panel rules-panel">
+            <div class="panel-heading"><div><h2>关键词回复</h2><p>按优先级匹配，每条消息只触发第一条规则。</p></div><button class="button primary" id="new-rule-button">＋ 新建规则</button></div>
+            <div class="table-toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="rule-search" type="search" placeholder="搜索关键词或回复内容" aria-label="搜索规则"></label><select id="rule-filter" aria-label="筛选规则状态"><option value="all">全部状态</option><option value="enabled">已启用</option><option value="disabled">已停用</option></select></div>
+            <div class="table-scroll"><table><thead><tr><th>关键词 / 回复</th><th>匹配方式</th><th>优先级</th><th>状态</th><th class="align-right">操作</th></tr></thead><tbody id="rules-table"></tbody></table></div>
+            <div id="rules-empty" class="empty-state" hidden><div class="empty-icon">↗</div><h3>从第一句回复开始</h3><p>添加一个关键词，为它写一句话，或配上一张图片。</p><button class="button secondary" id="empty-new-rule">新建第一条规则</button></div>
+            <div class="panel-foot"><span id="rule-count-label">正在加载规则…</span><span>优先级越大，越先匹配</span></div>
+          </section>
+          <aside class="preview-column">
+            <section class="panel preview-panel"><div class="panel-heading"><div><span class="eyebrow">PLAYGROUND</span><h2>试试这句怎么回</h2></div><span class="outline-dot"></span></div><p class="preview-intro">测试已保存的关键词规则，不会发送 QQ 消息。</p><div class="preview-conversation" id="preview-result" aria-live="polite"><div class="bot-avatar">a.</div><div class="chat-bubble">在下方输入一句话，<br>看看机器人会如何回应。</div></div><form id="preview-form"><label class="sr-only" for="preview-message">测试消息</label><textarea id="preview-message" rows="3" maxlength="4000" required placeholder="例如：你好，今天也要加油"></textarea><button class="button primary" id="preview-submit" type="submit">测试回复 <span>↗</span></button></form><small class="preview-foot">仅测试关键词匹配，遵循规则开关与优先级。</small></section>
+            <div class="tip"><span>✦</span><div><strong>一点小提示</strong><p>“精确匹配”适合固定口令；“包含匹配”适合自然聊天里的关键词。你也可以把文字和图片放在同一条回复里。</p></div></div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-images" class="view" hidden>
+        <section class="panel"><div class="panel-heading"><div><h2>图片资源库</h2><p>上传后即可在回复规则中选用。删除前需先解除规则引用。</p></div><span class="tag">PNG · JPEG · GIF</span></div><label class="upload-zone" id="upload-zone" tabindex="0" role="button"><input id="upload-input" type="file" accept="image/png,image/jpeg,image/gif" multiple hidden><span class="upload-symbol">↑</span><strong>拖动图片到这里，或点击上传</strong><span>每张最大 10MB · 最多 2000 万像素 · 支持多张上传</span></label><p id="upload-status" class="upload-status" aria-live="polite"></p><div id="image-gallery" class="image-gallery"></div><div id="images-empty" class="empty-state" hidden><h3>资源库还是空的</h3><p>上传一张表情包，让回复变得更生动。</p></div></section>
+      </section>
+
+      <section id="view-groups" class="view" hidden>
+        <section class="panel">
+          <div class="panel-heading"><div><h2>群聊功能总开关</h2><p>仅配置并开启的群可使用机器人。关闭时关键词、图片、查询、AI 等全部停止回复，新发现的群默认关闭。</p></div><button class="button primary" id="new-group-button">＋ 添加群聊</button></div>
+          <div class="table-toolbar"><label class="search"><span aria-hidden="true">⌕</span><input id="group-search" type="search" placeholder="搜索群名称、群号或机器人 QQ" aria-label="搜索群聊"></label></div>
+          <div id="group-list" class="group-list"></div>
+          <div id="groups-empty" class="empty-state" hidden><div class="empty-icon">◎</div><h3>还没有群聊配置</h3><p>连接 NapCat 后同步群列表，也可直接填写机器人 QQ 号与群号。</p></div>
+          <div class="panel-foot"><span id="group-count-label">正在加载群聊…</span><span>限额按北京时间每日重置，失败请求也计次</span></div>
+        </section>
+        <div class="storage-note"><span>✦</span><div><strong>普通消息，直接对话</strong><p>关键词命中时优先回复配置内容，其他普通文本直接进行模型对话，无需 @、命令或 AI 关键词。例如发送“我想吃什么”即可聊天。冷却期间、超限、过长消息和 @其他人的消息不会调用自动 AI。仅明确开启的群会发送文本及有限上下文至配置的 AI 服务。</p></div></div>
+      </section>
+
+      <section id="view-knowledge" class="view" hidden>
+        <section class="panel knowledge-preview" style="margin-top:0;margin-bottom:24px">
+          <div class="panel-heading"><div><h2>战舰世界 · 本地舰船数据库</h2><p>按舰名从本地全量快照查询；聊天时不请求源网站。</p></div><span id="ship-switch"></span></div>
+          <div class="knowledge-body">
+            <p id="ship-status" class="knowledge-meta" role="status">正在读取快照状态…</p>
+            <p class="knowledge-meta">支持中文名、英文名、舰船编号及站点拼音缩写。例如：得梅因的主炮装填是多少；比较大和与蒙大拿的射程。最多同时比较 3 艘，同名舰船会提示确认；自建资料库命中时仍优先使用自建库。</p>
+            <form id="ship-preview-form"><label class="field">本地舰船查询<textarea id="ship-query" rows="2" maxlength="4000" required placeholder="例如：得梅因的雷达持续多久"></textarea></label><button class="button secondary" type="submit">查询本地数据</button></form>
+            <div id="ship-preview-result" class="knowledge-result" aria-live="polite">此处只展示本地检索结果，不调用模型；聊天中将由模型结合这些数据生成回复。</div>
+            <small>更新快照：在项目根目录运行 python scripts/sync_wows.py，成功后刷新页面即可读取新版本。快照独立保存在 data/wows/，备份时请保留整个目录；不包含在配置 SQL 中。</small>
+          </div>
+        </section>
+        <section class="panel">
+          <div class="panel-heading"><div><h2>资料库</h2><p>每个库独立匹配多个关键词。命中后优先检索本库，交由模型生成回复。</p></div><button id="new-knowledge" class="button primary">＋ 新建资料库</button></div>
+          <div class="knowledge-body">
+            <label class="field">选择资料库<select id="knowledge-select"><option value="">尚无资料库</option></select></label>
+            <div id="knowledge-detail" hidden>
+              <p id="knowledge-meta" class="knowledge-meta"></p>
+              <div class="knowledge-actions"><button id="edit-knowledge" class="button secondary">编辑名称 / 关键词 / 开关</button><button id="delete-knowledge" class="button quiet">删除资料库</button></div>
+              <label class="field">导入 TXT 文件<input id="knowledge-upload" type="file" accept=".txt,text/plain" multiple><small>支持多文件、UTF-8 / GB18030 / 带 BOM 的 UTF-16；单文件最大 512KB，每库最多 32 个文件、总计 4MB。</small></label>
+              <p id="knowledge-upload-status" class="upload-status" role="status"></p>
+              <div id="knowledge-files" class="knowledge-files"></div>
+            </div>
+          </div>
+        </section>
+        <section class="panel knowledge-preview">
+          <div class="panel-heading"><div><h2>检索预览</h2><p>仅在本地检查库与片段，不调用模型、不发送 QQ 消息。</p></div></div>
+          <form id="knowledge-preview-form" class="knowledge-body"><label class="field">测试聊天内容<textarea id="knowledge-query" rows="3" maxlength="4000" required placeholder="输入包含资料库关键词的问题"></textarea></label><button class="button primary" type="submit">检索资料</button><pre id="knowledge-preview-result" class="knowledge-result" aria-live="polite">输入消息，查看将使用哪个库以及哪些片段。</pre></form>
+        </section>
+        <div class="storage-note"><span>✦</span><div><strong>按关键词选择，资料相互隔离</strong><p>长句包含关键词即可触发，英文字母不区分大小写。多个库同时命中时，选择匹配关键词最长的库；长度相同时选择最早创建的库。只检索所选库，最多携带 4 段资料，不发送整个库。资料不足时模型会被要求明确说明。启用的资料库优先于固定关键词规则，继续遵守群开关、回复率、AI 开关、冷却及限额。命中的资料片段会随聊天发送至项目配置的模型 API。</p><p>原文件保存在项目 uploads/knowledge/，配置和可检索文本保存在数据库中；SQL 导出包含资料文本，恢复后无需原文件也能检索。资料库是所有已允许聊天共用的参考资料，请勿导入不适合向这些用户提供的内容。</p></div></div>
+      </section>
+
+      <section id="view-learning" class="view" hidden>
+        <section class="panel">
+          <div class="panel-heading"><div><h2>人格学习总开关</h2><p>从群聊学习表达和黑话，核心人设始终保留。</p></div><span id="learning-global-switch"></span></div>
+          <div class="knowledge-body"><p id="learning-global-status" class="knowledge-meta" role="status">进入此页读取学习状态。</p><p class="knowledge-meta">关闭后停止采样、批量学习和风格引用，已学内容保留。每群至少间隔 6 小时，全机器人每天最多尝试 4 批；不会逐条消息调用模型。</p></div>
+        </section>
+        <section class="panel knowledge-preview">
+          <div class="panel-heading"><div><h2>按群管理</h2><p>同一群号在不同机器人账号下分别保存。</p></div><button id="learning-refresh" class="button secondary" type="button">刷新学习内容</button></div>
+          <div class="knowledge-body">
+            <div class="learning-picker"><label class="field">筛选群聊<input id="learning-search" type="search" placeholder="群名、群号或机器人 QQ"></label><label class="field">选择群聊<select id="learning-group" aria-label="选择要管理学习内容的群聊"></select></label></div>
+            <p id="learning-empty" class="knowledge-meta" hidden>没有匹配的群聊。请先到“群聊管理”添加或同步群聊。</p>
+            <p id="learning-error" class="form-error" role="alert" hidden></p>
+            <div id="learning-detail" hidden>
+              <div class="learning-group-heading"><div><h3 id="learning-group-title"></h3><p id="learning-meta" class="knowledge-meta" role="status"></p></div><div class="learning-actions"><span id="learning-group-switch"></span><button id="learning-clear" class="button secondary" type="button" disabled>清空此群学习内容</button></div></div>
+              <p class="knowledge-meta">单群开关不影响普通聊天。删除或清空会丢弃此群待学样本，并阻止正在学习的旧批次写回；不清聊天记忆、不重置学习额度。后续新消息仍可能重新学到同一表达。</p>
+              <div class="learning-columns"><section><h3>表达习惯 <span id="learning-expression-count"></span></h3><div id="learning-expressions" class="learning-items"></div></section><section><h3>群内黑话 <span id="learning-jargon-count"></span></h3><div id="learning-jargon" class="learning-items"></div></section></div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section id="view-persona" class="view" hidden>
+        <section class="panel settings-panel">
+            <div class="panel-heading"><div><h2>机器人是谁，由你定义</h2><p>每个群独立保存人设，私聊 / Web 默认人设单独管理。</p></div><span id="persona-status" class="saved-label" role="status">已保存</span></div>
+          <form id="persona-form" style="padding:24px">
+              <label class="field">配置范围<select id="persona-scope"><option value="private">私聊 / Web 默认人设</option></select><small id="persona-scope-note">仅影响私聊和 Web，不修改任何群的人设。</small></label>
+            <label class="field" for="persona-prompt">人设提示词<textarea id="persona-prompt" rows="14" maxlength="8000" placeholder="可以描述：名字与自我认知、性格、爱好、情绪表达、说话习惯及口癖。例如：你叫小杏，是一位温柔、有点俏皮的聊天伙伴……"></textarea><small><span id="persona-count">0</span> / 8000 字符。留空并保存可使用默认人设；人设会随请求发送给配置的模型，越长越占用输入 Token。</small></label>
+            <p id="persona-error" class="form-error" role="alert" hidden></p>
+            <div class="modal-actions"><button type="button" id="persona-example" class="button secondary">填入示例</button><button type="submit" id="save-persona-button" class="button primary">保存人设</button></div>
+          </form>
+        </section>
+        <section class="panel settings-panel">
+          <div class="panel-heading"><div><h2>内容边界 · 全局</h2><p>独立于人设，统一约束所有群、私聊和 Web 的 AI 生成回复。</p></div><span id="boundary-status" class="saved-label" role="status">未读取</span></div>
+          <form id="boundary-form" style="padding:24px">
+            <label class="field">禁止回复内容<textarea id="boundary-prompt" rows="7" maxlength="8000" disabled placeholder="填写不允许回答的内容、话题及处理方式，一条一行。例如：不要披露群成员的个人联系方式；遇到此类请求简短拒绝。"></textarea><small><span id="boundary-count">0</span> / 8000 字符。优先于人设、历史记忆和人格学习。留空表示不添加自定义限制。此配置是模型指令，不能保证百分之百拦截；不影响关键词固定回复和图片发送。</small></label>
+            <p class="field"><small>旧人设不会自动拆分。可将其中的内容限制移到这里，再从原人设删除相应段落。</small></p>
+            <p id="boundary-error" class="form-error" role="alert" hidden></p>
+            <div class="modal-actions"><button type="submit" id="save-boundary-button" class="button primary" disabled>保存内容边界</button></div>
+          </form>
+        </section>
+        <div class="storage-note"><span>✦</span><div><strong>让表达有自己的风格</strong><p>提示词用于引导模型表现，不能保证每次回复完全一致。已有聊天上下文会保留，新请求会更新系统人设。关键词固定回复、群聊开关、回复率、冷却和用量限制继续按原配置运行。</p></div></div>
+      </section>
+
+      <section id="view-settings" class="view" hidden>
+        <section class="panel settings-panel"><div class="panel-heading"><div><h2>功能开关</h2><p>修改后自动保存，下一条消息即时生效。</p></div><span id="settings-status" class="saved-label">已保存</span></div><div id="settings-list"></div></section>
+        <div class="storage-note"><span>▤</span><div><strong>配置跟着项目走</strong><p>功能设置与回复规则保存在 <code>data/bot-config.mv.db</code>，图片保存在 <code>uploads/images/</code>。备份时请同时保留这两个目录。连接地址和 API 密钥继续通过项目环境变量配置。</p></div></div>
+      </section>
+      <footer class="page-footer"><span>Almond Eye / 让每次对话多一点温度</span><span id="last-saved">尚未连接</span></footer>
+    </div>
+  </main>
+
+  <dialog id="rule-dialog" class="modal"><form id="rule-form"><div class="modal-heading"><div><p class="eyebrow">REPLY RULE</p><h2 id="rule-dialog-title">新建回复规则</h2></div><button type="button" class="icon-button" data-close="rule-dialog" aria-label="关闭">×</button></div><input type="hidden" id="rule-id"><label class="field">触发关键词 <span class="required">*</span><input id="rule-keyword" maxlength="200" required placeholder="例如：早上好" autocomplete="off"></label><label class="field">执行动作<select id="rule-action"><option value="REPLY">固定文字 / 上传图片</option><option value="AI">附加：AI 指令（自动聊天无需此项）</option><option value="WIKI">附加：Wiki 查询</option><option value="CLEAR_HISTORY">附加：清除当前用户上下文</option><option value="DAHUI_IMAGE">随机打灰图片</option><option value="SIZHAI_IMAGE">香草马娘图片</option><option value="RANDOM_IMAGE">随机马娘图片</option><option value="TAG_IMAGE">Tag 关键词搜图</option><option value="WOWS_STATS">战舰世界战绩查询</option><option value="HELP">附加：功能帮助</option></select><small id="rule-action-hint"></small></label><div class="form-row"><label class="field">匹配方式<select id="rule-match"><option value="CONTAINS">包含关键词</option><option value="EXACT">完全一致</option></select></label><label class="field">优先级<input id="rule-priority" type="number" min="0" max="999" value="0" required><small>0–999，数值越大越先匹配</small></label></div><label class="field">回复文字 / 参数提示<textarea id="rule-text" rows="4" maxlength="4000" placeholder="写下机器人要回复的话…"></textarea></label><label class="field" id="rule-image-field">回复图片<select id="rule-image"><option value="">不使用图片</option></select><small>文字和图片至少填写一项。图片可先到资源库上传。</small></label><label class="checkbox-field"><input id="rule-enabled" type="checkbox" checked> 保存后启用这条规则</label><p id="rule-error" class="form-error" role="alert" hidden></p><div class="modal-actions"><button type="button" class="button secondary" data-close="rule-dialog">取消</button><button id="save-rule-button" type="submit" class="button primary">保存规则</button></div></form></dialog>
+
+  <dialog id="knowledge-dialog" class="modal"><form id="knowledge-form">
+    <div class="modal-heading"><h2 id="knowledge-dialog-title">新建资料库</h2><button type="button" class="icon-button" data-close="knowledge-dialog" aria-label="关闭">×</button></div>
+    <input type="hidden" id="knowledge-id">
+    <label class="field">资料库名称<input id="knowledge-name" maxlength="100" required placeholder="例如：摄影手册"></label>
+    <label class="field">检索关键词<textarea id="knowledge-keywords" rows="5" maxlength="4000" required placeholder="摄影&#10;相机&#10;曝光"></textarea><small>用逗号或换行分隔，每库 1–50 个关键词，每个最多 100 字符。</small></label>
+    <label class="checkbox-field"><input id="knowledge-enabled" type="checkbox"> 启用资料库关键词检索</label>
+    <p>启用后，命中的相关资料片段将发送给已配置的模型 API 生成回复。</p>
+    <p id="knowledge-error" class="form-error" role="alert" hidden></p>
+    <div class="modal-actions"><button class="button secondary" type="button" data-close="knowledge-dialog">取消</button><button id="save-knowledge" class="button primary" type="submit">保存资料库</button></div>
+  </form></dialog>
+
+  <dialog id="auth-dialog" class="modal small-modal"><form id="auth-form"><div class="modal-heading"><h2>连接设置</h2><button type="button" class="icon-button" data-close="auth-dialog" aria-label="关闭">×</button></div><p>本机默认可直接访问。若项目配置了管理 Token，请在此填写；仅在当前浏览器会话中保存。</p><label class="field">管理 Token<input id="admin-token" type="password" autocomplete="off" placeholder="对应 BOT_ADMIN_TOKEN"></label><p id="auth-error" class="form-error" role="alert" hidden></p><div class="modal-actions"><button class="button secondary" type="button" id="clear-token-button">清除 Token</button><button class="button primary" type="submit">连接工作空间</button></div></form></dialog>
+
+  <dialog id="confirm-dialog" class="modal small-modal"><div class="modal-heading"><h2 id="confirm-title">确认删除</h2></div><p id="confirm-description"></p><div class="modal-actions"><button class="button secondary" id="confirm-cancel">取消</button><button class="button danger" id="confirm-delete">确认删除</button></div></dialog>
+  <dialog id="group-dialog" class="modal"><form id="group-form">
+    <div class="modal-heading"><div><p class="eyebrow">GROUP CHAT</p><h2 id="group-dialog-title">配置群聊</h2></div><button type="button" class="icon-button" data-close="group-dialog" aria-label="关闭">×</button></div>
+    <div class="form-row"><label class="field">机器人 QQ 号<input id="group-self" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required></label><label class="field">群号<input id="group-id" inputmode="numeric" pattern="[1-9][0-9]{0,18}" required></label></div>
+    <label class="field">群名称<input id="group-name" maxlength="200" placeholder="例如：好友聊天群"></label>
+    <input type="hidden" id="group-mode" value="ALL">
+    <input type="hidden" id="group-keywords" value="">
+    <div class="form-row"><label class="field">群冷却（秒）<input id="group-cooldown" type="number" min="5" max="3600" value="30" required></label><label class="field">每日 AI 次数<input id="group-daily" type="number" min="1" max="1000" value="50" required></label></div>
+    <div class="form-row"><label class="field">输入字符上限<input id="group-input" type="number" min="20" max="4000" value="500" required></label><label class="field">输出 Token 上限<input id="group-output" type="number" min="32" max="1024" value="256" required></label></div>
+    <div class="form-row"><label class="field">携带近期对话（轮）<input id="group-context" type="number" min="0" max="50" value="3" required><small>0–50 轮个人对话，同时参考最近两倍条数的群消息；另附个人及群摘要。个人保存上限 50 轮，群聊上限 100 条，含机器人回复；增加近期对话会消耗更多 Token。</small></label><input id="group-follow" type="hidden" value="0"></div>
+    <label class="field">自动回复率（0–1）<input id="group-rate" type="number" min="0" max="1" step="any" value="1" required><small>例如 0.2 表示约 20% 的普通群消息参与回复（含关键词）；0 不自动回复，1 每条都参与。私信和 @机器人不受概率影响。群开关、功能开关及 AI 冷却和限额仍生效。</small></label>
+    <label class="checkbox-field"><input id="group-enabled" type="checkbox"> 开启此群机器人功能（自动聊天与关键词回复）</label>
+    <p class="group-consent">此开关控制本群全部机器人功能，关闭时不回复任何群消息。开启且 AI 总开关开启后，普通消息文本及有限上下文将发送至项目配置的 DeepSeek API。不会自动向其他群开启。</p>
+    <p id="group-error" class="form-error" role="alert" hidden></p>
+    <div class="modal-actions"><button type="button" class="button secondary" data-close="group-dialog">取消</button><button type="submit" class="button primary" id="save-group-button">保存群聊配置</button></div>
+  </form></dialog>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
+

@@ -364,7 +364,6 @@
         messageInput.value = '';
         sendBtn.disabled = true;
 
-        showTypingIndicator();
 
         try {
             const response = await fetch('http://localhost:8080/web/send', {
@@ -388,14 +387,17 @@
                 } else {
                     removeTypingIndicator();
 
-                    if (data.type === 'image' && data.imageBase64) {
-                        appendImageMessage(data.imageBase64, false);
-                    } else if (data.type === 'text') {
-                        appendMessage(data.content, false);
+                    for (const message of (data.messages || [data])) {
+                        if (message.type === 'image' && message.imageBase64) {
+                            for (const part of (message.parts || (message.content ? [message.content] : []))) appendMessage(part, false);
+                            appendImageMessage(message.imageBase64, false);
+                        } else if (message.type === 'text') {
+                            for (const part of (message.parts || (message.content ? [message.content] : []))) appendMessage(part, false);
 
-                        if (data.images && data.images.length > 0) {
-                            for (const imageUrl of data.images) {
-                                appendImageMessage(imageUrl, false, true);
+                            if (message.images && message.images.length > 0) {
+                                for (const imageUrl of message.images) {
+                                    appendImageMessage(imageUrl, false, true);
+                                }
                             }
                         }
                     }

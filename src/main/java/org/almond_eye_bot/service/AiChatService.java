@@ -1,93 +1,57 @@
 package org.almond_eye_bot.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import lombok.extern.slf4j.Slf4j;
 import org.almond_eye_bot.client.DeepSeekClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-
+@Slf4j
 @Service
 public class AiChatService {
-    private static final Logger logger = LoggerFactory.getLogger(AiChatService.class);
+    @Autowired private DeepSeekClient deepSeekClient;
+    @Autowired private BotConfigurationService configuration;
+    @Autowired private ConversationMemoryService memory;
 
-    @Autowired
-    private DeepSeekClient deepSeekClient;
+    public String chat(String userId, String userMessage) { return reply(userId, userMessage, "deepseek-chat"); }
+    public String chatWithReasoning(String userId, String userMessage) { return reply(userId, userMessage, "deepseek-reasoner"); }
 
-    private final ConcurrentHashMap<String, List<JSONObject>> conversationHistories = new ConcurrentHashMap<>();
-
-    public String chat(String userId, String userMessage) {
-        try {
-            List<JSONObject> messages = getOrCreateConversation(userId);
-
-            JSONObject userMsg = deepSeekClient.createMessage("user", userMessage);
-            messages.add(userMsg);
-
-            String aiResponse = deepSeekClient.chat(messages, "deepseek-chat", false);
-
-            if (aiResponse != null && !aiResponse.trim().isEmpty()) {
-                JSONObject aiMsg = deepSeekClient.createMessage("assistant", aiResponse);
-                messages.add(aiMsg);
-
-                updateConversation(userId, messages);
-
-                return aiResponse;
-            } else {
-                logger.warn("AI 返回空响应");
-                return "抱歉，我暂时无法回答您的问题。";
+    private String reply(String conversation, String text, String model) {
+        if (text == null || text.isBlank() || !deepSeekClient.isConfigured()) return null;
+        String owner = ConversationMemoryService.owner(conversation);
+        String[] scope = conversation != null && conversation.matches("onebot:[1-9][0-9]*:group:[1-9][0-9]*:[1-9][0-9]*") ? conversation.split(":") : null;
+        synchronized (memory.lock(owner)) {
+            try {
+                var messages = new ArrayList<JSONObject>();
+                var boundary = configuration.contentBoundary();
+                var assigned = scope == null ? null : configuration.groupPersona(scope[1],scope[3]);
+                String persona = assigned == null ? configuration.systemPrompt(false) : configuration.systemPrompt(assigned);
+                messages.add(JSONObject.of("role", "system", "content", persona));
+                messages.addAll(PersonaContext.history(memory.context(owner, 50, 4000, 4000)));
+                String input = limit(text);
+                new KnowledgeBaseService(configuration).augment(messages, input);
+                messages.add(JSONObject.of("role", "user", "content", input));
+                String response = deepSeekClient.chat(messages, model, false);
+                if (response == null || response.isBlank()) return null;
+                // Never publish or remember an answer generated with a replaced persona.
+                if (!boundary.equals(configuration.contentBoundary())) return null;
+                if (assigned == null ? !persona.equals(configuration.systemPrompt(false))
+                        : !assigned.equals(configuration.groupPersona(scope[1],scope[3]))) return null;
+                response = limit(response.strip());
+                memory.remember(owner, input, response, () -> deepSeekClient.isConfigured() && configuration.settings().aiEnabled());
+                return response;
+            } catch (Exception error) {
+                log.warn("AI 聊天失败，跳过回复", error);
+                return null;
             }
-        } catch (Exception e) {
-            logger.error("AI 聊天失败", e);
-            return "AI 服务暂时不可用，请稍后再试。（错误：" + e.getMessage() + "）";
         }
     }
 
-    public String chatWithReasoning(String userId, String userMessage) {
-        try {
-            List<JSONObject> messages = getOrCreateConversation(userId);
-
-            JSONObject userMsg = deepSeekClient.createMessage("user", userMessage);
-            messages.add(userMsg);
-
-            String aiResponse = deepSeekClient.chat(messages, "deepseek-reasoner", false);
-
-            if (aiResponse != null && !aiResponse.trim().isEmpty()) {
-                JSONObject aiMsg = deepSeekClient.createMessage("assistant", aiResponse);
-                messages.add(aiMsg);
-
-                updateConversation(userId, messages);
-
-                return aiResponse;
-            } else {
-                logger.warn("AI 返回空响应");
-                return "抱歉，我暂时无法回答您的问题。";
-            }
-        } catch (Exception e) {
-            logger.error("AI 深度思考聊天失败", e);
-            return "AI 深度思考服务暂时不可用，请稍后再试。（错误：" + e.getMessage() + "）";
-        }
-    }
-
-    private List<JSONObject> getOrCreateConversation(String userId) {
-        return conversationHistories.computeIfAbsent(userId, k ->
-                deepSeekClient.createMessageHistory("")
-        );
-    }
-
-    private void updateConversation(String userId, List<JSONObject> messages) {
-        conversationHistories.put(userId, messages);
-    }
-
-    public void clearHistory(String userId) {
-        conversationHistories.remove(userId);
-        logger.info("已清除用户 {} 的聊天历史", userId);
-    }
-
+    public void clearHistory(String userId) { memory.clear(ConversationMemoryService.owner(userId)); }
     public int getHistorySize(String userId) {
-        List<JSONObject> history = conversationHistories.get(userId);
-        return history != null ? history.size() : 0;
+        String owner = ConversationMemoryService.owner(userId);
+        return memory.size(owner) == 0 ? 0 : 1 + memory.context(owner, 50, 4000, 4000).size();
     }
+    private static String limit(String text) { return text.length() > 4000 ? text.substring(0, 4000) : text; }
 }

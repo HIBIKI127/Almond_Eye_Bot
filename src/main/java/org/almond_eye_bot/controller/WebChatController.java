@@ -53,7 +53,7 @@ public class WebChatController {
             String userId = request.get("userId");
 
             if (userId != null && !userId.isEmpty()) {
-                aiChatService.clearHistory(userId);
+                aiChatService.clearHistory("web:" + userId);
                 response.put("success", true);
                 response.put("message", "已清除聊天历史");
             } else {
